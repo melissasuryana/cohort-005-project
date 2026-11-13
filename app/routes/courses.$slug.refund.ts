@@ -30,7 +30,7 @@ const refundActionSchema = z.object({
   reason: z
     .string()
     .trim()
-    .min(10, "Tell us a little more about why you want to cancel.")
+    .min(10, "Tell us a little more about why you are requesting a refund.")
     .max(1000, "Please keep your reason under 1000 characters."),
 });
 
@@ -97,14 +97,13 @@ function buildReversalEmail(input: {
 }) {
   return {
     to: input.learnerEmail,
-    subject: `Reversal requested — ${input.courseTitle}`,
+    subject: `Refund request received: ${input.courseTitle}`,
     body: [
       `Hi ${input.learnerName},`,
       "",
-      `We have your Reversal request for "${input.courseTitle}".`,
-      `The Reversal is for ${formatPrice(input.amount)}, the amount you paid.`,
-      "",
-      "Our team reviews every Reversal by hand. You do not need to do anything else — we will email you again when it is done.",
+      `We've received your refund request for ${input.courseTitle}.`,
+      `Requested amount: ${formatPrice(input.amount)}.`,
+      "Our team will review your request.",
       "",
       "— The Cadence team",
     ].join("\n"),
@@ -115,7 +114,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   const currentUserId = await getCurrentUserId(request);
 
   if (!currentUserId) {
-    throw data("You must be logged in to cancel a purchase.", { status: 401 });
+    throw data("You must be logged in to request a refund.", { status: 401 });
   }
 
   const { slug } = parseParams(params, refundParamsSchema);
@@ -142,7 +141,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   if (getOpenRefund(purchase.id)) {
-    throw data("You already have a request open on this purchase.", {
+    throw data("You already have a refund request open for this purchase.", {
       status: 409,
     });
   }
@@ -158,14 +157,16 @@ export async function action({ params, request }: Route.ActionArgs) {
     .get();
 
   if (claimedSeat) {
-    throw data("A claimed team seat cannot be cancelled.", { status: 403 });
+    throw data("A purchase with a claimed team seat is not eligible for a refund.", {
+      status: 403,
+    });
   }
 
   const today = calendarDay(new Date());
   const withinRefundWindow = today <= lastDayOfWindow(purchase.createdAt);
 
   if (!withinRefundWindow) {
-    throw data(`The ${REFUND_WINDOW_DAYS}-day window has closed.`, {
+    throw data(`The ${REFUND_WINDOW_DAYS}-day refund request window has closed.`, {
       status: 403,
     });
   }
@@ -195,7 +196,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   if (watchedSeconds >= MAX_WATCHED_HOURS * 60 * 60) {
-    throw data("You have watched too much of this course to cancel it.", {
+    throw data("You have watched too much of this course to request a refund.", {
       status: 403,
     });
   }
