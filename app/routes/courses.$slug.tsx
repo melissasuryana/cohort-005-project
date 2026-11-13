@@ -1014,7 +1014,7 @@ function CancelPurchase({ slug, amount }: { slug: string; amount: number }) {
           className="w-full text-muted-foreground"
           onClick={() => setIsFormOpen(true)}
         >
-          Cancel my purchase
+          Request a refund
         </Button>
       </div>
     );
@@ -1022,10 +1022,10 @@ function CancelPurchase({ slug, amount }: { slug: string; amount: number }) {
 
   return (
     <div className="border-t pt-4">
-      <p className="mb-2 text-sm font-medium">Cancel my purchase</p>
+      <p className="mb-2 text-sm font-medium">Request a refund</p>
       <p className="mb-3 text-xs text-muted-foreground">
-        We will send {formatPrice(amount)} back to the card you paid with, once
-        someone has read your note.
+        Requested amount: {formatPrice(amount)}. Our team reviews refund requests
+        manually.
       </p>
       <fetcher.Form
         method="post"
@@ -1036,11 +1036,11 @@ function CancelPurchase({ slug, amount }: { slug: string; amount: number }) {
           name="reason"
           rows={3}
           required
-          placeholder="What went wrong?"
+          placeholder="Why are you requesting a refund?"
         />
         <div className="flex gap-2">
           <Button type="submit" size="sm" disabled={isSubmitting}>
-            {isSubmitting ? "Sending..." : "Cancel my purchase"}
+            {isSubmitting ? "Submitting..." : "Request a refund"}
           </Button>
           <Button
             type="button"
@@ -1048,7 +1048,7 @@ function CancelPurchase({ slug, amount }: { slug: string; amount: number }) {
             size="sm"
             onClick={() => setIsFormOpen(false)}
           >
-            Keep it
+            Close
           </Button>
         </div>
       </fetcher.Form>
